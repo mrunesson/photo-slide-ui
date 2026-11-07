@@ -22,26 +22,30 @@ export function useKeyboardControls(actions: KeyboardActions) {
       return
     }
 
-    if (
-      event.key === '-' ||
-      event.key === '_' ||
-      event.code === 'Minus' ||
-      event.code === 'NumpadSubtract'
-    ) {
+    if (event.key === '-' || event.key === '_') {
       event.preventDefault()
       actions.slowDown()
       return
     }
 
-    if (
-      event.key === '+' ||
-      event.key === '=' ||
-      event.code === 'Equal' ||
-      event.code === 'NumpadAdd'
-    ) {
+    if (event.key === '+' || event.key === '=') {
       event.preventDefault()
       actions.speedUp()
       return
+    }
+
+    if (Array.from(event.key).length !== 1) {
+      if (event.code === 'Minus' || event.code === 'NumpadSubtract') {
+        event.preventDefault()
+        actions.slowDown()
+        return
+      }
+
+      if (event.code === 'Equal' || event.code === 'NumpadAdd') {
+        event.preventDefault()
+        actions.speedUp()
+        return
+      }
     }
 
     if (event.key === 'ArrowRight') {

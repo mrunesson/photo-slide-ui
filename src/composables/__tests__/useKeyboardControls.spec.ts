@@ -46,12 +46,14 @@ describe('useKeyboardControls', () => {
 
   it('ignores keyboard shortcuts when focus is inside input elements', () => {
     const forceNext = vi.fn()
+    const speedUp = vi.fn()
+    const slowDown = vi.fn()
     const TestComponent = defineComponent({
       setup() {
         useKeyboardControls({
           forceNext,
-          speedUp: vi.fn(),
-          slowDown: vi.fn(),
+          speedUp,
+          slowDown,
         })
         return () => h('input', { id: 'test-input' })
       },
@@ -65,6 +67,57 @@ describe('useKeyboardControls', () => {
     window.dispatchEvent(event)
 
     expect(forceNext).not.toHaveBeenCalled()
+    const plusEvent = new KeyboardEvent('keydown', { key: '+', code: 'Minus', bubbles: true })
+    Object.defineProperty(plusEvent, 'target', { value: inputEl, enumerable: true })
+    window.dispatchEvent(plusEvent)
+
+    expect(speedUp).not.toHaveBeenCalled()
+    expect(slowDown).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
+  it('prefers speed shortcut characters over physical key codes', () => {
+    const speedUp = vi.fn()
+    const slowDown = vi.fn()
+    const TestComponent = defineComponent({
+      setup() {
+        useKeyboardControls({
+          forceNext: vi.fn(),
+          speedUp,
+          slowDown,
+        })
+        return () => h('div')
+      },
+    })
+
+    const wrapper = mount(TestComponent)
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: '+', code: 'Minus' }))
+    expect(speedUp).toHaveBeenCalledTimes(1)
+    expect(slowDown).not.toHaveBeenCalled()
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: '-', code: 'Equal' }))
+    expect(slowDown).toHaveBeenCalledTimes(1)
+    expect(speedUp).toHaveBeenCalledTimes(1)
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: '?', code: 'Equal' }))
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: '?', code: 'Minus' }))
+    expect(speedUp).toHaveBeenCalledTimes(1)
+    expect(slowDown).toHaveBeenCalledTimes(1)
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: '=', code: 'Equal' }))
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: '+', code: 'NumpadAdd' }))
+    expect(speedUp).toHaveBeenCalledTimes(3)
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: '_', code: 'Minus' }))
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: '-', code: 'NumpadSubtract' }))
+    expect(slowDown).toHaveBeenCalledTimes(3)
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Equal' }))
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Minus' }))
+    expect(speedUp).toHaveBeenCalledTimes(4)
+    expect(slowDown).toHaveBeenCalledTimes(4)
+
     wrapper.unmount()
   })
 })
