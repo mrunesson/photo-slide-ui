@@ -27,6 +27,12 @@ npm install
 npm run dev
 ```
 
+### Run Unit Tests with [Vitest](https://vitest.dev/)
+
+```sh
+npm run test
+```
+
 ### Type-Check, Compile and Minify for Production
 
 ```sh
